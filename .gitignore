@@ -1,0 +1,26 @@
+# Gradle
+.gradle/
+build/
+
+# Local configuration (machine-specific SDK path)
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.cxx/
+captures/
+
+# Build artifacts
+*.apk
+*.aab
+*.aar
+*.ap_
+*.dex
+
+# Signing material
+*.jks
+*.keystore
+
+# OS
+.DS_Store
