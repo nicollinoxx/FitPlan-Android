@@ -6,6 +6,9 @@ private const val PRODUCTION_URL  = "https://fitplan.vip"
 const val BASE_URL    = DEVELOPMENT_URL
 const val SIGN_IN_URL = "$BASE_URL/sign_in"
 
+// Cookie the Rails app stores the signed-in session under (see SessionsController).
+const val SESSION_COOKIE = "session_token"
+
 // Start location of each bottom navigation tab. Every path below is a real
 // top-level route of the FitPlan Rails app (see its config/routes.rb).
 const val WORKOUTS_URL  = "$BASE_URL/"

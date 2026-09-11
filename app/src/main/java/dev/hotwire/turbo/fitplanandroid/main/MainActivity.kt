@@ -1,6 +1,7 @@
 package dev.hotwire.turbo.fitplanandroid.main
 
 import android.os.Bundle
+import android.webkit.CookieManager
 import android.widget.ViewFlipper
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -9,6 +10,8 @@ import dev.hotwire.strada.Strada
 import dev.hotwire.turbo.activities.TurboActivity
 import dev.hotwire.turbo.delegates.TurboActivityDelegate
 import dev.hotwire.turbo.fitplanandroid.R
+import dev.hotwire.turbo.fitplanandroid.util.BASE_URL
+import dev.hotwire.turbo.fitplanandroid.util.SESSION_COOKIE
 
 class MainActivity : AppCompatActivity(), TurboActivity {
     override lateinit var delegate: TurboActivityDelegate
@@ -29,6 +32,9 @@ class MainActivity : AppCompatActivity(), TurboActivity {
         R.id.tab_settings to R.id.settings_nav_host
     )
 
+    // Rails session each tab last rendered under, keyed by tab position.
+    private val tabSessions = mutableMapOf<Int, String?>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -39,6 +45,9 @@ class MainActivity : AppCompatActivity(), TurboActivity {
         tabs.drop(1).forEach { (_, navHostId) -> delegate.registerNavHostFragment(navHostId) }
 
         Strada.config.jsonConverter = KotlinXJsonConverter()
+
+        // Every tab starts out rendering the session the app launched with.
+        tabs.indices.forEach { tabSessions[it] = sessionToken() }
 
         val selectedTab = savedInstanceState?.getInt(SELECTED_TAB_KEY) ?: 0
 
@@ -73,6 +82,33 @@ class MainActivity : AppCompatActivity(), TurboActivity {
     private fun selectTab(position: Int) {
         delegate.currentNavHostFragmentId = tabs[position].second
         viewFlipper.displayedChild = position
+        resetTabIfSessionChanged(position)
+    }
+
+    /**
+     * Each tab renders in its own WebView and then keeps whatever page it landed
+     * on, so signing in or out leaves the other tabs showing the previous
+     * session. Reloading them is not enough: a tab redirected to /welcome while
+     * signed out stays on /welcome, which renders the same page either way.
+     *
+     * Comparing the Rails session cookie a tab rendered under against the
+     * current one detects exactly that, in both directions, and only then is the
+     * tab sent back to its start location -- so tabs otherwise keep their
+     * history and the user returns to where they left off.
+     */
+    private fun resetTabIfSessionChanged(position: Int) {
+        val session = sessionToken()
+        if (tabSessions[position] == session) return
+
+        tabSessions[position] = session
+        delegate.navHostFragment(tabs[position].second).reset()
+    }
+
+    private fun sessionToken(): String? {
+        return CookieManager.getInstance().getCookie(BASE_URL)
+            ?.split(";")
+            ?.map { it.trim() }
+            ?.firstOrNull { it.startsWith("$SESSION_COOKIE=") }
     }
 
     companion object {
