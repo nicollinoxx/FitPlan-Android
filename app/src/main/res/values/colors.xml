@@ -3,4 +3,6 @@
     <color name="color_brand">#1362E0</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="bottom_nav_background">#FFFFFFFF</color>
+    <color name="bottom_nav_item_unselected">#FF9E9E9E</color>
 </resources>

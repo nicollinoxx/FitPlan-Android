@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FitPlan</string>
+
+    <string name="tab_treino">Treino</string>
+    <string name="tab_dieta">Dieta</string>
+    <string name="tab_social">Social</string>
+    <string name="tab_perfil">Perfil</string>
+    <string name="tab_menu">Menu</string>
+</resources>
