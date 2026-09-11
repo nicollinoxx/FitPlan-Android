@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import dev.hotwire.strada.BridgeDelegate
 import dev.hotwire.turbo.fitplanandroid.base.NavDestination
+import dev.hotwire.turbo.fitplanandroid.main.MainActivity
 import dev.hotwire.turbo.fitplanandroid.util.SIGN_IN_URL
 import dev.hotwire.turbo.fragments.TurboWebFragment
 import dev.hotwire.turbo.nav.TurboNavGraphDestination
@@ -26,6 +27,11 @@ open class WebFragment : TurboWebFragment(), NavDestination {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycle.addObserver(bridgeDelegate)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        (activity as? MainActivity)?.onDestinationStarted(this)
     }
 
     override fun onDestroyView() {

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.webkit.CookieManager
 import android.widget.ViewFlipper
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dev.hotwire.strada.KotlinXJsonConverter
 import dev.hotwire.strada.Strada
@@ -12,6 +13,7 @@ import dev.hotwire.turbo.delegates.TurboActivityDelegate
 import dev.hotwire.turbo.fitplanandroid.R
 import dev.hotwire.turbo.fitplanandroid.util.BASE_URL
 import dev.hotwire.turbo.fitplanandroid.util.SESSION_COOKIE
+import dev.hotwire.turbo.nav.TurboNavDestination
 
 class MainActivity : AppCompatActivity(), TurboActivity {
     override lateinit var delegate: TurboActivityDelegate
@@ -34,6 +36,10 @@ class MainActivity : AppCompatActivity(), TurboActivity {
 
     // Rails session each tab last rendered under, keyed by tab position.
     private val tabSessions = mutableMapOf<Int, String?>()
+
+    // Tabs currently sitting on a screen that asked for the bottom navigation to
+    // be hidden, so switching back to one restores the right chrome.
+    private val tabsHidingNavigation = mutableSetOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,6 +89,33 @@ class MainActivity : AppCompatActivity(), TurboActivity {
         delegate.currentNavHostFragmentId = tabs[position].second
         viewFlipper.displayedChild = position
         resetTabIfSessionChanged(position)
+        applyBottomNavigationVisibility(position)
+    }
+
+    /**
+     * Called by every destination as it becomes visible. Screens that sign the
+     * user in -- welcome, sign in, sign up, password reset -- declare
+     * "bottom_navigation": "hidden" in the path configuration, because there is
+     * nothing worth switching to until there is a session. Keeping the decision
+     * in the path configuration means new screens opt in without touching this
+     * class.
+     */
+    fun onDestinationStarted(destination: TurboNavDestination) {
+        val position = tabs.indexOfFirst { it.second == destination.fragment.parentFragment?.id }
+        if (position == -1) return
+
+        when (destination.pathProperties[BOTTOM_NAVIGATION] == HIDDEN) {
+            true -> tabsHidingNavigation.add(position)
+            else -> tabsHidingNavigation.remove(position)
+        }
+
+        if (position == viewFlipper.displayedChild) {
+            applyBottomNavigationVisibility(position)
+        }
+    }
+
+    private fun applyBottomNavigationVisibility(position: Int) {
+        bottomNavigationView.isVisible = position !in tabsHidingNavigation
     }
 
     /**
@@ -113,5 +146,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
 
     companion object {
         private const val SELECTED_TAB_KEY = "selected_tab"
+        private const val BOTTOM_NAVIGATION = "bottom_navigation"
+        private const val HIDDEN = "hidden"
     }
 }
