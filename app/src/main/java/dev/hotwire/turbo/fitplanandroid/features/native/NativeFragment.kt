@@ -9,8 +9,14 @@ import androidx.compose.ui.platform.ViewCompositionStrategy
 import dev.hotwire.turbo.fragments.TurboFragment
 import dev.hotwire.turbo.fitplanandroid.R
 import dev.hotwire.turbo.fitplanandroid.base.NavDestination
+import dev.hotwire.turbo.fitplanandroid.main.MainActivity
 
 abstract class NativeFragment : TurboFragment(), NavDestination {
+    override fun onStart() {
+        super.onStart()
+        (activity as? MainActivity)?.onDestinationStarted(this)
+    }
+
     fun setContent(inflater: LayoutInflater, container: ViewGroup?, content: @Composable () -> Unit): View? {
         val root = inflater.inflate(R.layout.fragment_native, container, false)
         val composeView = root.findViewById<ComposeView>(R.id.compose_view)

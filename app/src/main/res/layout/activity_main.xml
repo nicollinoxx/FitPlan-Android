@@ -7,71 +7,55 @@
     android:layout_height="match_parent"
     tools:context=".main.MainActivity">
 
-    <!-- Cada aba possui seu próprio FragmentContainerView / sessão Turbo,
-         para manter uma pilha de navegação independente. Apenas a aba
-         selecionada fica visível; a troca é feita em MainActivity. -->
-
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host_treino"
-        android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.TreinoSessionNavHostFragment"
+    <!--
+      One Turbo session per tab, each with its own WebView and back stack. The
+      ViewFlipper displays a single child at a time while keeping the others
+      alive off screen, so switching tabs preserves each tab's history.
+    -->
+    <ViewFlipper
+        android:id="@+id/view_flipper"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:defaultNavHost="false"
+        android:measureAllChildren="false"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav" />
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view">
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host_dieta"
-        android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.DietaSessionNavHostFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:defaultNavHost="false"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav" />
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/workouts_nav_host"
+            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.WorkoutsSessionNavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host_social"
-        android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SocialSessionNavHostFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:defaultNavHost="false"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav" />
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/dashboard_nav_host"
+            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.DashboardSessionNavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host_perfil"
-        android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.PerfilSessionNavHostFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:defaultNavHost="false"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav" />
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/social_nav_host"
+            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SocialSessionNavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
-    <androidx.fragment.app.FragmentContainerView
-        android:id="@+id/nav_host_menu"
-        android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.MenuSessionNavHostFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:defaultNavHost="false"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_nav" />
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/profile_nav_host"
+            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.ProfileSessionNavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/settings_nav_host"
+            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SettingsSessionNavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </ViewFlipper>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_nav"
+        android:id="@+id/bottom_navigation_view"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:background="@color/bottom_nav_background"
