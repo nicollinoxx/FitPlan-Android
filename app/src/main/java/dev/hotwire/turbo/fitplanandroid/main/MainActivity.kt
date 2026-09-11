@@ -1,6 +1,7 @@
 package dev.hotwire.turbo.fitplanandroid.main
 
 import android.os.Bundle
+import android.widget.ViewFlipper
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import dev.hotwire.strada.KotlinXJsonConverter
@@ -12,77 +13,69 @@ import dev.hotwire.turbo.fitplanandroid.R
 class MainActivity : AppCompatActivity(), TurboActivity {
     override lateinit var delegate: TurboActivityDelegate
 
-    // Associa cada item do menu da bottom nav ao FragmentContainerView da sua aba.
-    private val tabContainerIds = mapOf(
-        R.id.nav_treino to R.id.nav_host_treino,
-        R.id.nav_dieta to R.id.nav_host_dieta,
-        R.id.nav_social to R.id.nav_host_social,
-        R.id.nav_perfil to R.id.nav_host_perfil,
-        R.id.nav_menu to R.id.nav_host_menu
-    )
+    private val viewFlipper: ViewFlipper
+        get() = findViewById(R.id.view_flipper)
 
-    private var selectedContainerId: Int = R.id.nav_host_treino
+    private val bottomNavigationView: BottomNavigationView
+        get() = findViewById(R.id.bottom_navigation_view)
+
+    // Menu item to nav host fragment of the tab it opens. The order matches the
+    // ViewFlipper children, so a tab's position doubles as its displayedChild.
+    private val tabs = listOf(
+        R.id.tab_workouts to R.id.workouts_nav_host,
+        R.id.tab_dashboard to R.id.dashboard_nav_host,
+        R.id.tab_social to R.id.social_nav_host,
+        R.id.tab_profile to R.id.profile_nav_host,
+        R.id.tab_settings to R.id.settings_nav_host
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        configApp()
 
-        selectedContainerId = savedInstanceState?.getInt(SELECTED_CONTAINER_KEY)
-            ?: R.id.nav_host_treino
+        // The constructor registers the first nav host fragment; the remaining
+        // tabs are registered so the delegate can switch between them later.
+        delegate = TurboActivityDelegate(this, tabs.first().second)
+        tabs.drop(1).forEach { (_, navHostId) -> delegate.registerNavHostFragment(navHostId) }
 
-        setupBottomNavigation()
-        showTab(selectedContainerId)
+        Strada.config.jsonConverter = KotlinXJsonConverter()
+
+        val selectedTab = savedInstanceState?.getInt(SELECTED_TAB_KEY) ?: 0
+
+        // Check the restored item before listening, so restoring state does not
+        // bounce back through the listener.
+        bottomNavigationView.selectedItemId = tabs[selectedTab].first
+        setupBottomNavigationView()
+        selectTab(selectedTab)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(SELECTED_CONTAINER_KEY, selectedContainerId)
+        outState.putInt(SELECTED_TAB_KEY, viewFlipper.displayedChild)
     }
 
-    private fun configApp() {
-        Strada.config.jsonConverter = KotlinXJsonConverter()
-    }
+    private fun setupBottomNavigationView() {
+        bottomNavigationView.setOnItemSelectedListener { item ->
+            val position = tabs.indexOfFirst { it.first == item.itemId }
 
-    private fun setupBottomNavigation() {
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_nav)
-
-        bottomNav.selectedItemId = tabContainerIds.entries
-            .first { it.value == selectedContainerId }.key
-
-        bottomNav.setOnItemSelectedListener { item ->
-            val containerId = tabContainerIds[item.itemId]
-                ?: return@setOnItemSelectedListener false
-
-            showTab(containerId)
-            true
+            when (position) {
+                -1 -> false
+                else -> { selectTab(position); true }
+            }
         }
     }
 
     /**
-     * Mostra a aba [containerId] e esconde as demais. Como cada aba é um
-     * TurboSessionNavHostFragment independente, o FragmentTransaction usa
-     * show()/hide() (não replace/add) para preservar a WebView e a pilha de
-     * navegação de cada aba entre as trocas.
+     * Turbo keeps one session per tab. Pointing the delegate at the tab's nav
+     * host fragment is what makes navigation, the back stack and the Strada
+     * bridge act on the tab the user is currently looking at.
      */
-    private fun showTab(containerId: Int) {
-        val transaction = supportFragmentManager.beginTransaction()
-
-        tabContainerIds.values.forEach { id ->
-            supportFragmentManager.findFragmentById(id)?.let { fragment ->
-                if (id == containerId) transaction.show(fragment) else transaction.hide(fragment)
-            }
-        }
-
-        transaction.commitNow()
-
-        selectedContainerId = containerId
-        // O TurboActivityDelegate aponta para um único NavHostFragment por vez,
-        // então precisa ser recriado apontando para a aba que ficou visível.
-        delegate = TurboActivityDelegate(this, containerId)
+    private fun selectTab(position: Int) {
+        delegate.currentNavHostFragmentId = tabs[position].second
+        viewFlipper.displayedChild = position
     }
 
     companion object {
-        private const val SELECTED_CONTAINER_KEY = "selected_container_id"
+        private const val SELECTED_TAB_KEY = "selected_tab"
     }
 }

@@ -14,17 +14,15 @@ import dev.hotwire.turbo.session.TurboSessionNavHostFragment
 import kotlin.reflect.KClass
 
 /**
- * Classe base compartilhada por cada aba da bottom navigation.
+ * Base class shared by every bottom navigation tab.
  *
- * Cada aba é uma sessão Turbo independente: possui sua própria WebView e sua
- * própria pilha de navegação. É isso que permite trocar de aba e voltar
- * exatamente de onde o usuário parou, sem perder o histórico.
+ * Each tab is an independent Turbo session with its own WebView and its own
+ * back stack, which is what lets the user switch tabs and come back to exactly
+ * where they left off.
  *
- * As subclasses só precisam definir um [sessionName] único e uma [startLocation].
+ * Subclasses only need a unique [sessionName] and a [startLocation].
  */
-@Suppress("unused")
 abstract class TabSessionNavHostFragment : TurboSessionNavHostFragment() {
-
     override val registeredActivities: List<KClass<out AppCompatActivity>>
         get() = listOf()
 
@@ -44,8 +42,7 @@ abstract class TabSessionNavHostFragment : TurboSessionNavHostFragment() {
         super.onSessionCreated()
         session.webView.settings.userAgentString = session.webView.customUserAgent
 
-        // Cada aba tem sua própria instância de WebView, então o Strada
-        // precisa ser (re)inicializado para a sessão de cada aba.
+        // Each tab owns a WebView, so the Strada bridge is initialized per session
         Bridge.initialize(session.webView)
     }
 }
