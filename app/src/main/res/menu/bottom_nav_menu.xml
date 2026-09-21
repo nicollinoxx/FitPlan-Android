@@ -21,9 +21,4 @@
         android:icon="@drawable/ic_tab_profile"
         android:title="@string/tab_profile" />
 
-    <item
-        android:id="@+id/tab_settings"
-        android:icon="@drawable/ic_tab_settings"
-        android:title="@string/tab_settings" />
-
 </menu>

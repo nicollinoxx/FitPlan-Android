@@ -30,8 +30,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
         R.id.tab_workouts to R.id.workouts_nav_host,
         R.id.tab_dashboard to R.id.dashboard_nav_host,
         R.id.tab_social to R.id.social_nav_host,
-        R.id.tab_profile to R.id.profile_nav_host,
-        R.id.tab_settings to R.id.settings_nav_host
+        R.id.tab_profile to R.id.profile_nav_host
     )
 
     // Rails session each tab last rendered under, keyed by tab position.
@@ -77,6 +76,26 @@ class MainActivity : AppCompatActivity(), TurboActivity {
                 -1 -> false
                 else -> { selectTab(position); true }
             }
+        }
+
+        // Tapping the tab you are already on sends it back to its start page.
+        // That is what a bottom navigation is expected to do; without it the tap
+        // does nothing once the user has navigated deeper inside the tab.
+        bottomNavigationView.setOnItemReselectedListener {
+            returnTabToStart(viewFlipper.displayedChild)
+        }
+    }
+
+    /**
+     * Turbo registers every web page under the same destination id, so popping
+     * by id cannot tell one page of a tab from another -- popping until there is
+     * nothing left to pop is what actually lands back on the tab's start page.
+     */
+    private fun returnTabToStart(position: Int) {
+        val navController = delegate.navHostFragment(tabs[position].second).navController
+
+        while (navController.popBackStack()) {
+            // pop every page the user opened inside this tab
         }
     }
 

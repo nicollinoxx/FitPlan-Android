@@ -46,12 +46,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/settings_nav_host"
-            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SettingsSessionNavHostFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
     </ViewFlipper>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
