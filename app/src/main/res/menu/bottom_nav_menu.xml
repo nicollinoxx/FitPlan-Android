@@ -2,9 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/tab_workouts"
-        android:icon="@drawable/ic_tab_workouts"
-        android:title="@string/tab_workouts" />
+        android:id="@+id/tab_sheets"
+        android:icon="@drawable/ic_tab_sheets"
+        android:title="@string/tab_sheets" />
+
+    <item
+        android:id="@+id/tab_shares"
+        android:icon="@drawable/ic_tab_shares"
+        android:title="@string/tab_shares" />
 
     <item
         android:id="@+id/tab_dashboard"

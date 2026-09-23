@@ -27,7 +27,8 @@ class MainActivity : AppCompatActivity(), TurboActivity {
     // Menu item to nav host fragment of the tab it opens. The order matches the
     // ViewFlipper children, so a tab's position doubles as its displayedChild.
     private val tabs = listOf(
-        R.id.tab_workouts to R.id.workouts_nav_host,
+        R.id.tab_sheets to R.id.sheets_nav_host,
+        R.id.tab_shares to R.id.shares_nav_host,
         R.id.tab_dashboard to R.id.dashboard_nav_host,
         R.id.tab_social to R.id.social_nav_host,
         R.id.tab_profile to R.id.profile_nav_host

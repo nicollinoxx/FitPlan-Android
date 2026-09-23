@@ -23,8 +23,14 @@
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view">
 
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/workouts_nav_host"
-            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.WorkoutsSessionNavHostFragment"
+            android:id="@+id/sheets_nav_host"
+            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SheetsSessionNavHostFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/shares_nav_host"
+            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SharesSessionNavHostFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
