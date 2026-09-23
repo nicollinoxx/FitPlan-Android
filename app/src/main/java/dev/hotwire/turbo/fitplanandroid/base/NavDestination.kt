@@ -11,6 +11,7 @@ import dev.hotwire.strada.BridgeDestination
 import dev.hotwire.turbo.config.TurboPathConfigurationProperties
 import dev.hotwire.turbo.config.context
 import dev.hotwire.turbo.fitplanandroid.R
+import dev.hotwire.turbo.fitplanandroid.main.MainActivity
 import dev.hotwire.turbo.fitplanandroid.util.BASE_URL
 import dev.hotwire.turbo.nav.TurboNavDestination
 import dev.hotwire.turbo.nav.TurboNavPresentationContext.DEFAULT
@@ -18,10 +19,16 @@ import dev.hotwire.turbo.nav.TurboNavPresentationContext.MODAL
 
 interface NavDestination : TurboNavDestination, BridgeDestination {
     override fun shouldNavigateTo(newLocation: String): Boolean {
-        return when (isNavigable(newLocation)) {
-            true -> { displayNoticeMessage(newLocation); true }
-            else -> { launchCustomTab(newLocation); false }
+        if (!isNavigable(newLocation)) {
+            launchCustomTab(newLocation); return false
         }
+
+        if (mainActivity?.selectTabFor(this, newLocation) == true) {
+            return false
+        }
+
+        displayNoticeMessage(newLocation)
+        return true
     }
 
     override fun getNavigationOptions(
@@ -37,6 +44,9 @@ interface NavDestination : TurboNavDestination, BridgeDestination {
     override fun bridgeWebViewIsReady(): Boolean {
         return session.isReady
     }
+
+    private val mainActivity: MainActivity?
+        get() = fragment.activity as? MainActivity
 
     private fun isNavigable(location: String): Boolean {
         return location.startsWith(BASE_URL)

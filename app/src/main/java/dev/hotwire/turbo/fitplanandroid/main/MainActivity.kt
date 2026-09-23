@@ -12,7 +12,12 @@ import dev.hotwire.turbo.activities.TurboActivity
 import dev.hotwire.turbo.delegates.TurboActivityDelegate
 import dev.hotwire.turbo.fitplanandroid.R
 import dev.hotwire.turbo.fitplanandroid.util.BASE_URL
+import dev.hotwire.turbo.fitplanandroid.util.DASHBOARD_URL
+import dev.hotwire.turbo.fitplanandroid.util.PROFILE_URL
 import dev.hotwire.turbo.fitplanandroid.util.SESSION_COOKIE
+import dev.hotwire.turbo.fitplanandroid.util.SHARES_URL
+import dev.hotwire.turbo.fitplanandroid.util.SHEETS_URL
+import dev.hotwire.turbo.fitplanandroid.util.SOCIAL_URL
 import dev.hotwire.turbo.nav.TurboNavDestination
 
 class MainActivity : AppCompatActivity(), TurboActivity {
@@ -24,14 +29,16 @@ class MainActivity : AppCompatActivity(), TurboActivity {
     private val bottomNavigationView: BottomNavigationView
         get() = findViewById(R.id.bottom_navigation_view)
 
-    // Menu item to nav host fragment of the tab it opens. The order matches the
-    // ViewFlipper children, so a tab's position doubles as its displayedChild.
+    private data class Tab(val menuItemId: Int, val navHostId: Int, val startLocation: String)
+
+    // The order matches the ViewFlipper children, so a tab's position in this
+    // list doubles as its displayedChild.
     private val tabs = listOf(
-        R.id.tab_sheets to R.id.sheets_nav_host,
-        R.id.tab_shares to R.id.shares_nav_host,
-        R.id.tab_dashboard to R.id.dashboard_nav_host,
-        R.id.tab_social to R.id.social_nav_host,
-        R.id.tab_profile to R.id.profile_nav_host
+        Tab(R.id.tab_sheets, R.id.sheets_nav_host, SHEETS_URL),
+        Tab(R.id.tab_shares, R.id.shares_nav_host, SHARES_URL),
+        Tab(R.id.tab_dashboard, R.id.dashboard_nav_host, DASHBOARD_URL),
+        Tab(R.id.tab_social, R.id.social_nav_host, SOCIAL_URL),
+        Tab(R.id.tab_profile, R.id.profile_nav_host, PROFILE_URL)
     )
 
     // Rails session each tab last rendered under, keyed by tab position.
@@ -47,8 +54,8 @@ class MainActivity : AppCompatActivity(), TurboActivity {
 
         // The constructor registers the first nav host fragment; the remaining
         // tabs are registered so the delegate can switch between them later.
-        delegate = TurboActivityDelegate(this, tabs.first().second)
-        tabs.drop(1).forEach { (_, navHostId) -> delegate.registerNavHostFragment(navHostId) }
+        delegate = TurboActivityDelegate(this, tabs.first().navHostId)
+        tabs.drop(1).forEach { delegate.registerNavHostFragment(it.navHostId) }
 
         Strada.config.jsonConverter = KotlinXJsonConverter()
 
@@ -59,7 +66,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
 
         // Check the restored item before listening, so restoring state does not
         // bounce back through the listener.
-        bottomNavigationView.selectedItemId = tabs[selectedTab].first
+        bottomNavigationView.selectedItemId = tabs[selectedTab].menuItemId
         setupBottomNavigationView()
         selectTab(selectedTab)
     }
@@ -71,7 +78,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
 
     private fun setupBottomNavigationView() {
         bottomNavigationView.setOnItemSelectedListener { item ->
-            val position = tabs.indexOfFirst { it.first == item.itemId }
+            val position = tabs.indexOfFirst { it.menuItemId == item.itemId }
 
             when (position) {
                 -1 -> false
@@ -99,7 +106,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
      * always lands on the start location.
      */
     private fun returnTabToStart(position: Int) {
-        delegate.navHostFragment(tabs[position].second).reset()
+        delegate.navHostFragment(tabs[position].navHostId).reset()
     }
 
     /**
@@ -108,7 +115,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
      * bridge act on the tab the user is currently looking at.
      */
     private fun selectTab(position: Int) {
-        delegate.currentNavHostFragmentId = tabs[position].second
+        delegate.currentNavHostFragmentId = tabs[position].navHostId
         viewFlipper.displayedChild = position
         resetTabIfSessionChanged(position)
         applyBottomNavigationVisibility(position)
@@ -123,7 +130,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
      * class.
      */
     fun onDestinationStarted(destination: TurboNavDestination) {
-        val position = tabs.indexOfFirst { it.second == destination.fragment.parentFragment?.id }
+        val position = tabs.indexOfFirst { it.navHostId == destination.fragment.parentFragment?.id }
         if (position == -1) return
 
         when (destination.pathProperties[BOTTOM_NAVIGATION] == HIDDEN) {
@@ -134,6 +141,28 @@ class MainActivity : AppCompatActivity(), TurboActivity {
         if (position == viewFlipper.displayedChild) {
             applyBottomNavigationVisibility(position)
         }
+    }
+
+    /**
+     * A link pointing at another tab's start page selects that tab instead of
+     * opening the page inside the one the user is on.
+     *
+     * Without this, following such a link -- the profile screen links to the
+     * dashboard, for instance -- leaves the bar highlighting the tab you came
+     * from while the content belongs to another, and there is no way back:
+     * Turbo registers every tab root under one navigation destination, so the
+     * page it pushes looks like the tab's own root and the toolbar draws no
+     * back arrow. Switching tabs keeps the bar honest and leaves the tab you
+     * left holding its own history.
+     */
+    fun selectTabFor(destination: TurboNavDestination, location: String): Boolean {
+        val from = tabs.indexOfFirst { it.navHostId == destination.fragment.parentFragment?.id }
+        val target = tabs.indexOfFirst { it.startLocation == location }
+
+        if (target == -1 || target == from || from != viewFlipper.displayedChild) return false
+
+        bottomNavigationView.selectedItemId = tabs[target].menuItemId
+        return true
     }
 
     private fun applyBottomNavigationVisibility(position: Int) {
@@ -156,7 +185,7 @@ class MainActivity : AppCompatActivity(), TurboActivity {
         if (tabSessions[position] == session) return
 
         tabSessions[position] = session
-        delegate.navHostFragment(tabs[position].second).reset()
+        delegate.navHostFragment(tabs[position].navHostId).reset()
     }
 
     private fun sessionToken(): String? {
