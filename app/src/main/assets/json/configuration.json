@@ -6,7 +6,8 @@
     { "patterns": ["/resume_historical_location"], "properties": { "presentation": "none" } },
     { "patterns": ["/refresh_historical_location"], "properties": { "presentation": "refresh" } },
     { "patterns": ["/new$", "/edit$", "/sign_in$", "/strada-form$"], "properties": { "context": "modal", "uri": "turbo://fragment/web/modal", "pull_to_refresh_enabled": false } },
-    { "patterns": ["^$", "^/?$", "^/?sheets(?:\\.html)?$", "/welcome$"], "properties": { "uri": "turbo://fragment/web/home", "presentation": "replace_all" } },
-    { "patterns": ["/numbers$"], "properties": { "uri": "turbo://fragment/numbers", "title": "Numbers" } }
+    { "patterns": ["^$", "^/?$", "^/?sheets(?:\\.html)?$", "/welcome$", "^/dashboard$", "^/social/profiles$", "^/identity/profile$"], "properties": { "uri": "turbo://fragment/web/home", "presentation": "replace_all" } },
+    { "patterns": ["/numbers$"], "properties": { "uri": "turbo://fragment/numbers", "title": "Numbers" } },
+    { "patterns": ["/welcome$", "/sign_in$", "/sign_up$", "/identity/password_reset", "/auth/failure$"], "properties": { "bottom_navigation": "hidden" } }
   ]
 }
