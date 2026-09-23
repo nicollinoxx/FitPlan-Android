@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="color_brand">#1362E0</color>
+    <!-- Brand green, the same #00FF87 the web app uses as $success. It carries the
+         identity as a *background* (the bottom navigation indicator); as text or an
+         icon on a light surface it only reaches about 1.4:1 against white, so light
+         mode uses a deeper green of the same hue for anything drawn in the color. -->
+    <color name="brand_neon">#00FF87</color>
+    <color name="on_brand_neon">#00301A</color>
+
+    <color name="color_brand">#00703C</color>
+    <color name="on_color_brand">#FFFFFFFF</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="bottom_nav_background">#FFFFFFFF</color>
-    <color name="bottom_nav_item_unselected">#FF9E9E9E</color>
 </resources>

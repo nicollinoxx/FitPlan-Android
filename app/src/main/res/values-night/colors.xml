@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- On dark surfaces the neon green reads well on its own, so it is the color
+         drawn in as well as the indicator behind the selected icon. -->
+    <color name="color_brand">#00FF87</color>
+    <color name="on_color_brand">#00301A</color>
+</resources>
