@@ -2,7 +2,8 @@
 <resources>
     <string name="app_name">FitPlan</string>
 
-    <string name="tab_workouts">Treino</string>
+    <string name="tab_sheets">Fichas</string>
+    <string name="tab_shares">Partilhar</string>
     <string name="tab_dashboard">Dashboard</string>
     <string name="tab_social">Social</string>
     <string name="tab_profile">Perfil</string>

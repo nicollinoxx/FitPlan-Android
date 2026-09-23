@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Icon tint. The selected icon sits on the neon indicator, so it is drawn dark. -->
+<!-- Label color. The label sits below the indicator, on the bar's own surface. -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:color="@color/on_brand_neon" android:state_checked="true" />
+    <item android:color="@color/color_brand" android:state_checked="true" />
     <item android:color="?attr/colorOnSurfaceVariant" />
 </selector>

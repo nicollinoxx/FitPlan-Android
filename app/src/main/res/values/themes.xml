@@ -1,9 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Base.Theme.FitPlanAndroid" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/color_brand</item>
-        <item name="colorPrimaryDark">@color/color_brand</item>
+        <item name="colorOnPrimary">@color/on_color_brand</item>
         <item name="colorAccent">@color/color_brand</item>
+
+        <!-- Follow the toolbar instead of painting a brand-colored band above it. -->
+        <item name="android:statusBarColor">?attr/colorSurface</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.FitPlanAndroid" parent="Base.Theme.FitPlanAndroid" />
+
+    <style name="Widget.FitPlan.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/brand_neon</item>
+    </style>
 </resources>

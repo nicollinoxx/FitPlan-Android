@@ -11,7 +11,8 @@ const val SESSION_COOKIE = "session_token"
 
 // Start location of each bottom navigation tab. Every path below is a real
 // top-level route of the FitPlan Rails app (see its config/routes.rb).
-const val WORKOUTS_URL  = "$BASE_URL/"
+const val SHEETS_URL    = "$BASE_URL/sheets"
+const val SHARES_URL    = "$BASE_URL/sheets/shares"
 const val DASHBOARD_URL = "$BASE_URL/dashboard"
 const val SOCIAL_URL    = "$BASE_URL/social/profiles"
 const val PROFILE_URL   = "$BASE_URL/identity/profile"
