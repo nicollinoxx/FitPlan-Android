@@ -87,16 +87,18 @@ class MainActivity : AppCompatActivity(), TurboActivity {
     }
 
     /**
-     * Turbo registers every web page under the same destination id, so popping
-     * by id cannot tell one page of a tab from another -- popping until there is
-     * nothing left to pop is what actually lands back on the tab's start page.
+     * Reselecting a tab puts it back on its start page.
+     *
+     * This resets the tab's session instead of popping its back stack. Popping
+     * is not dependable here: Turbo registers every web page under the same
+     * destination id, so popping by id matches the page already on screen, and
+     * popping entry by entry walks the fragment manager through several
+     * transactions in a row -- including across a modal boundary, and far
+     * enough to empty the tab entirely. Resetting is a single operation that
+     * always lands on the start location.
      */
     private fun returnTabToStart(position: Int) {
-        val navController = delegate.navHostFragment(tabs[position].second).navController
-
-        while (navController.popBackStack()) {
-            // pop every page the user opened inside this tab
-        }
+        delegate.navHostFragment(tabs[position].second).reset()
     }
 
     /**
