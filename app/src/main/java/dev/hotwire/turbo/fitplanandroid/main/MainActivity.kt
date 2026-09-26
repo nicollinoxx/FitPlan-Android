@@ -45,8 +45,10 @@ class MainActivity : HotwireActivity() {
         )
     }
 
-    // Rails session the page on each tab rendered under, keyed by tab position.
-    private val renderedSessionTokens = mutableMapOf<Int, String?>()
+    // What each tab last rendered, keyed by tab position.
+    private val renderedPages = mutableMapOf<Int, RenderedPage>()
+
+    private data class RenderedPage(val sessionToken: String?, val isAuthScreen: Boolean)
 
     // Tabs sitting on a screen that hides the bottom navigation.
     private val tabsHidingNavigation = mutableSetOf<Int>()
@@ -78,7 +80,7 @@ class MainActivity : HotwireActivity() {
         val position = positionOf(destination)
         if (position == -1) return
 
-        when (destination.pathProperties[BOTTOM_NAVIGATION] == HIDDEN) {
+        when (destination.isAuthScreen) {
             true -> tabsHidingNavigation.add(position)
             else -> tabsHidingNavigation.remove(position)
         }
@@ -87,12 +89,14 @@ class MainActivity : HotwireActivity() {
     }
 
     /**
-     * Records the Rails session a tab's page rendered under, so signing in or out
-     * resets the other tabs the next time they are selected.
+     * Records what a tab rendered, so signing in or out resets the other tabs the
+     * next time they are selected.
      */
     fun onPageRendered(destination: HotwireDestination) {
         val position = positionOf(destination)
-        if (position != -1 && !destination.isModal) renderedSessionTokens[position] = sessionToken()
+        if (position == -1 || destination.isModal) return
+
+        renderedPages[position] = RenderedPage(sessionToken(), destination.isAuthScreen)
     }
 
     /**
@@ -131,10 +135,27 @@ class MainActivity : HotwireActivity() {
         bottomNavigation.visibility = if (position in tabsHidingNavigation) Visibility.HIDDEN else Visibility.DEFAULT
     }
 
+    /**
+     * A tab is out of date when the session changed since it rendered, and also
+     * when it is left on an authentication screen while a session exists.
+     *
+     * The second case is not redundant. Signing in from a tab that was sitting on
+     * the welcome screen makes that tab reload the very same screen once the modal
+     * closes, which records the new session against a signed-out page. Comparing
+     * tokens alone then finds nothing wrong and the tab keeps the stale screen for
+     * good.
+     */
     private fun resetIfSessionChanged(position: Int) {
-        if (!renderedSessionTokens.containsKey(position) || renderedSessionTokens[position] == sessionToken()) return
+        val rendered = renderedPages[position] ?: return
+        val token = sessionToken()
+        val outOfDate = rendered.sessionToken != token || (rendered.isAuthScreen && token != null)
+        if (!outOfDate) return
+
         navigatorHost(tabs[position]).navigator.reset()
     }
+
+    private val HotwireDestination.isAuthScreen: Boolean
+        get() = pathProperties[BOTTOM_NAVIGATION] == HIDDEN
 
     private fun positionOf(destination: HotwireDestination): Int {
         return tabs.indexOfFirst { it.configuration.navigatorHostId == destination.navigator.configuration.navigatorHostId }
