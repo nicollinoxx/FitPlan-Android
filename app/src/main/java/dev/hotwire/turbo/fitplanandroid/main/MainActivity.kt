@@ -1,15 +1,25 @@
 package dev.hotwire.turbo.fitplanandroid.main
 
+import android.net.Uri
 import android.os.Bundle
+import android.view.View
 import android.webkit.CookieManager
-import android.widget.ViewFlipper
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.enableEdgeToEdge
+import androidx.annotation.DrawableRes
+import androidx.annotation.IdRes
+import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import dev.hotwire.strada.KotlinXJsonConverter
-import dev.hotwire.strada.Strada
-import dev.hotwire.turbo.activities.TurboActivity
-import dev.hotwire.turbo.delegates.TurboActivityDelegate
+import com.google.android.material.snackbar.Snackbar
+import dev.hotwire.navigation.activities.HotwireActivity
+import dev.hotwire.navigation.destinations.HotwireDestination
+import dev.hotwire.navigation.navigator.NavigatorConfiguration
+import dev.hotwire.navigation.navigator.NavigatorHost
+import dev.hotwire.navigation.tabs.HotwireBottomNavigationController
+import dev.hotwire.navigation.tabs.HotwireBottomNavigationController.Visibility
+import dev.hotwire.navigation.tabs.HotwireBottomTab
+import dev.hotwire.navigation.tabs.navigatorConfigurations
+import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 import dev.hotwire.turbo.fitplanandroid.R
 import dev.hotwire.turbo.fitplanandroid.util.BASE_URL
 import dev.hotwire.turbo.fitplanandroid.util.DASHBOARD_URL
@@ -18,119 +28,54 @@ import dev.hotwire.turbo.fitplanandroid.util.SESSION_COOKIE
 import dev.hotwire.turbo.fitplanandroid.util.SHARES_URL
 import dev.hotwire.turbo.fitplanandroid.util.SHEETS_URL
 import dev.hotwire.turbo.fitplanandroid.util.SOCIAL_URL
-import dev.hotwire.turbo.nav.TurboNavDestination
 
-class MainActivity : AppCompatActivity(), TurboActivity {
-    override lateinit var delegate: TurboActivityDelegate
-
-    private val viewFlipper: ViewFlipper
-        get() = findViewById(R.id.view_flipper)
+class MainActivity : HotwireActivity() {
+    private lateinit var bottomNavigation: HotwireBottomNavigationController
 
     private val bottomNavigationView: BottomNavigationView
         get() = findViewById(R.id.bottom_navigation_view)
 
-    private data class Tab(val menuItemId: Int, val navHostId: Int, val startLocation: String)
+    private val tabs by lazy {
+        listOf(
+            tab(R.string.tab_sheets, R.drawable.ic_tab_sheets, R.id.sheets_navigator_host, "sheets", SHEETS_URL),
+            tab(R.string.tab_shares, R.drawable.ic_tab_shares, R.id.shares_navigator_host, "shares", SHARES_URL),
+            tab(R.string.tab_dashboard, R.drawable.ic_tab_dashboard, R.id.dashboard_navigator_host, "dashboard", DASHBOARD_URL),
+            tab(R.string.tab_social, R.drawable.ic_tab_social, R.id.social_navigator_host, "social", SOCIAL_URL),
+            tab(R.string.tab_profile, R.drawable.ic_tab_profile, R.id.profile_navigator_host, "profile", PROFILE_URL)
+        )
+    }
 
-    // The order matches the ViewFlipper children, so a tab's position in this
-    // list doubles as its displayedChild.
-    private val tabs = listOf(
-        Tab(R.id.tab_sheets, R.id.sheets_nav_host, SHEETS_URL),
-        Tab(R.id.tab_shares, R.id.shares_nav_host, SHARES_URL),
-        Tab(R.id.tab_dashboard, R.id.dashboard_nav_host, DASHBOARD_URL),
-        Tab(R.id.tab_social, R.id.social_nav_host, SOCIAL_URL),
-        Tab(R.id.tab_profile, R.id.profile_nav_host, PROFILE_URL)
-    )
+    // Rails session the page on each tab rendered under, keyed by tab position.
+    private val renderedSessionTokens = mutableMapOf<Int, String?>()
 
-    // Rails session each tab last rendered under, keyed by tab position.
-    private val tabSessions = mutableMapOf<Int, String?>()
-
-    // Tabs currently sitting on a screen that asked for the bottom navigation to
-    // be hidden, so switching back to one restores the right chrome.
+    // Tabs sitting on a screen that hides the bottom navigation.
     private val tabsHidingNavigation = mutableSetOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        findViewById<View>(R.id.root).applyDefaultImeWindowInsets()
 
-        // The constructor registers the first nav host fragment; the remaining
-        // tabs are registered so the delegate can switch between them later.
-        delegate = TurboActivityDelegate(this, tabs.first().navHostId)
-        tabs.drop(1).forEach { delegate.registerNavHostFragment(it.navHostId) }
-
-        Strada.config.jsonConverter = KotlinXJsonConverter()
-
-        // Every tab starts out rendering the session the app launched with.
-        tabs.indices.forEach { tabSessions[it] = sessionToken() }
-
-        val selectedTab = savedInstanceState?.getInt(SELECTED_TAB_KEY) ?: 0
-
-        // Check the restored item before listening, so restoring state does not
-        // bounce back through the listener.
-        bottomNavigationView.selectedItemId = tabs[selectedTab].menuItemId
-        setupBottomNavigationView()
-        selectTab(selectedTab)
+        bottomNavigation = HotwireBottomNavigationController(this, bottomNavigationView, lazyLoadTabs = true)
+        bottomNavigation.load(tabs, savedInstanceState?.getInt(SELECTED_TAB_KEY) ?: 0)
+        bottomNavigation.setOnTabSelectedListener { position, _ -> onTabSelected(position) }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt(SELECTED_TAB_KEY, viewFlipper.displayedChild)
+        outState.putInt(SELECTED_TAB_KEY, currentTab)
     }
 
-    private fun setupBottomNavigationView() {
-        bottomNavigationView.setOnItemSelectedListener { item ->
-            val position = tabs.indexOfFirst { it.menuItemId == item.itemId }
-
-            when (position) {
-                -1 -> false
-                else -> { selectTab(position); true }
-            }
-        }
-
-        // Tapping the tab you are already on sends it back to its start page.
-        // That is what a bottom navigation is expected to do; without it the tap
-        // does nothing once the user has navigated deeper inside the tab.
-        bottomNavigationView.setOnItemReselectedListener {
-            returnTabToStart(viewFlipper.displayedChild)
-        }
-    }
+    override fun navigatorConfigurations() = tabs.navigatorConfigurations
 
     /**
-     * Reselecting a tab puts it back on its start page.
-     *
-     * This resets the tab's session instead of popping its back stack. Popping
-     * is not dependable here: Turbo registers every web page under the same
-     * destination id, so popping by id matches the page already on screen, and
-     * popping entry by entry walks the fragment manager through several
-     * transactions in a row -- including across a modal boundary, and far
-     * enough to empty the tab entirely. Resetting is a single operation that
-     * always lands on the start location.
+     * Screens that sign the user in declare "bottom_navigation": "hidden" in the
+     * path configuration, since there is nothing to switch to until there is a
+     * session.
      */
-    private fun returnTabToStart(position: Int) {
-        delegate.navHostFragment(tabs[position].navHostId).reset()
-    }
-
-    /**
-     * Turbo keeps one session per tab. Pointing the delegate at the tab's nav
-     * host fragment is what makes navigation, the back stack and the Strada
-     * bridge act on the tab the user is currently looking at.
-     */
-    private fun selectTab(position: Int) {
-        delegate.currentNavHostFragmentId = tabs[position].navHostId
-        viewFlipper.displayedChild = position
-        resetTabIfSessionChanged(position)
-        applyBottomNavigationVisibility(position)
-    }
-
-    /**
-     * Called by every destination as it becomes visible. Screens that sign the
-     * user in -- welcome, sign in, sign up, password reset -- declare
-     * "bottom_navigation": "hidden" in the path configuration, because there is
-     * nothing worth switching to until there is a session. Keeping the decision
-     * in the path configuration means new screens opt in without touching this
-     * class.
-     */
-    fun onDestinationStarted(destination: TurboNavDestination) {
-        val position = tabs.indexOfFirst { it.navHostId == destination.fragment.parentFragment?.id }
+    fun onDestinationStarted(destination: HotwireDestination) {
+        val position = positionOf(destination)
         if (position == -1) return
 
         when (destination.pathProperties[BOTTOM_NAVIGATION] == HIDDEN) {
@@ -138,54 +83,75 @@ class MainActivity : AppCompatActivity(), TurboActivity {
             else -> tabsHidingNavigation.remove(position)
         }
 
-        if (position == viewFlipper.displayedChild) {
-            applyBottomNavigationVisibility(position)
-        }
+        if (position == currentTab) applyBottomNavigationVisibility(position)
     }
 
     /**
-     * A link pointing at another tab's start page selects that tab instead of
-     * opening the page inside the one the user is on.
-     *
-     * Without this, following such a link -- the profile screen links to the
-     * dashboard, for instance -- leaves the bar highlighting the tab you came
-     * from while the content belongs to another, and there is no way back:
-     * Turbo registers every tab root under one navigation destination, so the
-     * page it pushes looks like the tab's own root and the toolbar draws no
-     * back arrow. Switching tabs keeps the bar honest and leaves the tab you
-     * left holding its own history.
+     * Records the Rails session a tab's page rendered under, so signing in or out
+     * resets the other tabs the next time they are selected.
      */
-    fun selectTabFor(destination: TurboNavDestination, location: String): Boolean {
-        val from = tabs.indexOfFirst { it.navHostId == destination.fragment.parentFragment?.id }
-        val target = tabs.indexOfFirst { it.startLocation == location }
+    fun onPageRendered(destination: HotwireDestination) {
+        val position = positionOf(destination)
+        if (position != -1 && !destination.isModal) renderedSessionTokens[position] = sessionToken()
+    }
 
-        if (target == -1 || target == from || from != viewFlipper.displayedChild) return false
+    /**
+     * A link to another tab's start page selects that tab instead of opening the
+     * page inside the one on screen, so the bar never highlights the wrong tab.
+     */
+    fun selectTabFor(destination: HotwireDestination, location: String): Boolean {
+        val from = positionOf(destination)
+        val target = tabs.indexOfFirst { isStartPage(location, it) }
+        if (target == -1 || target == from || from != currentTab) return false
 
-        bottomNavigationView.selectedItemId = tabs[target].menuItemId
+        if (destination.isModal) destination.navigator.pop()
+        bottomNavigation.selectTab(target)
         return true
     }
 
-    private fun applyBottomNavigationVisibility(position: Int) {
-        bottomNavigationView.isVisible = position !in tabsHidingNavigation
+    fun showNotice(location: String) {
+        Uri.parse(location).getQueryParameter("notice")?.let(::showMessage)
     }
 
-    /**
-     * Each tab renders in its own WebView and then keeps whatever page it landed
-     * on, so signing in or out leaves the other tabs showing the previous
-     * session. Reloading them is not enough: a tab redirected to /welcome while
-     * signed out stays on /welcome, which renders the same page either way.
-     *
-     * Comparing the Rails session cookie a tab rendered under against the
-     * current one detects exactly that, in both directions, and only then is the
-     * tab sent back to its start location -- so tabs otherwise keep their
-     * history and the user returns to where they left off.
-     */
-    private fun resetTabIfSessionChanged(position: Int) {
-        val session = sessionToken()
-        if (tabSessions[position] == session) return
+    fun showMessage(message: String) {
+        Snackbar.make(findViewById(R.id.root), message, Snackbar.LENGTH_SHORT).apply {
+            if (bottomNavigationView.isVisible) anchorView = bottomNavigationView
+        }.show()
+    }
 
-        tabSessions[position] = session
-        delegate.navHostFragment(tabs[position].navHostId).reset()
+    private val currentTab: Int
+        get() = bottomNavigationView.selectedItemId
+
+    private fun onTabSelected(position: Int) {
+        resetIfSessionChanged(position)
+        applyBottomNavigationVisibility(position)
+    }
+
+    private fun applyBottomNavigationVisibility(position: Int) {
+        bottomNavigation.visibility = if (position in tabsHidingNavigation) Visibility.HIDDEN else Visibility.DEFAULT
+    }
+
+    private fun resetIfSessionChanged(position: Int) {
+        if (!renderedSessionTokens.containsKey(position) || renderedSessionTokens[position] == sessionToken()) return
+        navigatorHost(tabs[position]).navigator.reset()
+    }
+
+    private fun positionOf(destination: HotwireDestination): Int {
+        return tabs.indexOfFirst { it.configuration.navigatorHostId == destination.navigator.configuration.navigatorHostId }
+    }
+
+    private fun isStartPage(location: String, tab: HotwireBottomTab): Boolean {
+        val uri = Uri.parse(location)
+        val start = Uri.parse(tab.configuration.startLocation)
+        // Rails links some pages with an explicit .html format (/sheets.html), and
+        // its root renders the sheets index, so it belongs to the first tab.
+        val path = uri.path.orEmpty().removeSuffix(".html")
+        val startPath = if (path.isEmpty() || path == "/") Uri.parse(SHEETS_URL).path else path
+        return uri.host == start.host && startPath == start.path
+    }
+
+    private fun navigatorHost(tab: HotwireBottomTab): NavigatorHost {
+        return supportFragmentManager.findFragmentById(tab.configuration.navigatorHostId) as NavigatorHost
     }
 
     private fun sessionToken(): String? {
@@ -194,6 +160,18 @@ class MainActivity : AppCompatActivity(), TurboActivity {
             ?.map { it.trim() }
             ?.firstOrNull { it.startsWith("$SESSION_COOKIE=") }
     }
+
+    private fun tab(
+        @StringRes title: Int,
+        @DrawableRes icon: Int,
+        @IdRes navigatorHostId: Int,
+        name: String,
+        startLocation: String
+    ) = HotwireBottomTab(
+        title = getString(title),
+        iconResId = icon,
+        configuration = NavigatorConfiguration(name = name, navigatorHostId = navigatorHostId, startLocation = startLocation)
+    )
 
     companion object {
         private const val SELECTED_TAB_KEY = "selected_tab"

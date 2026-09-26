@@ -2,17 +2,17 @@ package dev.hotwire.turbo.fitplanandroid.strada
 
 import android.util.Log
 import androidx.fragment.app.Fragment
-import com.google.android.material.snackbar.Snackbar
-import dev.hotwire.strada.BridgeComponent
-import dev.hotwire.strada.BridgeDelegate
-import dev.hotwire.strada.Message
-import dev.hotwire.turbo.fitplanandroid.base.NavDestination
+import dev.hotwire.core.bridge.BridgeComponent
+import dev.hotwire.core.bridge.BridgeDelegate
+import dev.hotwire.core.bridge.Message
+import dev.hotwire.navigation.destinations.HotwireDestination
+import dev.hotwire.turbo.fitplanandroid.main.MainActivity
 import kotlinx.serialization.Serializable
 
 class FlashMessageComponent(
     name: String,
-    private val bridgeDelegate: BridgeDelegate<NavDestination>
-) : BridgeComponent<NavDestination>(name, bridgeDelegate) {
+    private val bridgeDelegate: BridgeDelegate<HotwireDestination>
+) : BridgeComponent<HotwireDestination>(name, bridgeDelegate) {
 
     private val fragment: Fragment
         get() = bridgeDelegate.destination.fragment
@@ -31,7 +31,7 @@ class FlashMessageComponent(
     }
 
     private fun showSnackBar(data: MessageData) {
-        Snackbar.make(fragment.requireView(), data.title, Snackbar.LENGTH_SHORT).show()
+        (fragment.activity as? MainActivity)?.showMessage(data.title)
     }
 
     @Serializable

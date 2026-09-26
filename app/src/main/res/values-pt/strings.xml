@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_sheets">Fichas</string>
+    <string name="tab_shares">Compartilhar</string>
+    <string name="tab_dashboard">Painel</string>
+    <string name="tab_social">Social</string>
+    <string name="tab_profile">Perfil</string>
+
+    <string name="hotwire_error_message">Erro ao carregar a página</string>
+    <string name="hotwire_file_chooser_select">Selecionar arquivo</string>
+    <string name="hotwire_file_chooser_select_multiple">Selecionar arquivo(s)</string>
+    <string name="hotwire_dialog_ok">OK</string>
+    <string name="hotwire_dialog_cancel">Cancelar</string>
+</resources>

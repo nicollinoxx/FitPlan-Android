@@ -1,0 +1,10 @@
+{
+  "settings": {},
+  "rules": [
+    { "patterns": [".*"], "properties": { "context": "default", "uri": "hotwire://fragment/web", "pull_to_refresh_enabled": true, "query_string_presentation": "replace" } },
+    { "patterns": ["/new$", "/edit$", "/sign_in$", "/strada-form$"], "properties": { "context": "modal", "pull_to_refresh_enabled": false } },
+    { "patterns": ["^$", "^/$", "^/sheets(\\.html)?$", "^/sheets/shares(\\.html)?$", "^/dashboard$", "^/social/profiles$", "^/identity/profile$", "/welcome$"], "properties": { "presentation": "replace_root" } },
+    { "patterns": ["/numbers$"], "properties": { "uri": "hotwire://fragment/numbers", "title": "Numbers" } },
+    { "patterns": ["/welcome$", "/sign_in$", "/sign_up$", "/identity/password_reset", "/auth/failure$"], "properties": { "bottom_navigation": "hidden" } }
+  ]
+}

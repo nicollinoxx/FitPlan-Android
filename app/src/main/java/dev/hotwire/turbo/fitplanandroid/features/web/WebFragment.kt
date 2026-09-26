@@ -1,68 +1,42 @@
 package dev.hotwire.turbo.fitplanandroid.features.web
 
-import android.os.Bundle
-import android.view.View
-import dev.hotwire.strada.BridgeDelegate
-import dev.hotwire.turbo.fitplanandroid.base.NavDestination
+import dev.hotwire.core.turbo.errors.HttpError
+import dev.hotwire.core.turbo.errors.VisitError
+import dev.hotwire.core.turbo.visit.VisitProposal
+import dev.hotwire.navigation.destinations.HotwireDestinationDeepLink
+import dev.hotwire.navigation.fragments.HotwireWebFragment
+import dev.hotwire.navigation.routing.Router
 import dev.hotwire.turbo.fitplanandroid.main.MainActivity
 import dev.hotwire.turbo.fitplanandroid.util.SIGN_IN_URL
-import dev.hotwire.turbo.fragments.TurboWebFragment
-import dev.hotwire.turbo.nav.TurboNavGraphDestination
-import dev.hotwire.turbo.fitplanandroid.R
-import dev.hotwire.turbo.fitplanandroid.strada.bridgeComponentFactories
-import dev.hotwire.turbo.views.TurboWebView
-import dev.hotwire.turbo.visit.TurboVisitAction.REPLACE
-import dev.hotwire.turbo.visit.TurboVisitOptions
 
-@TurboNavGraphDestination(uri = "turbo://fragment/web")
-open class WebFragment : TurboWebFragment(), NavDestination {
-    private val bridgeDelegate by lazy {
-        BridgeDelegate(
-            location = location,
-            destination = this,
-            componentFactories =  bridgeComponentFactories
-        )
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner.lifecycle.addObserver(bridgeDelegate)
-    }
+@HotwireDestinationDeepLink(uri = "hotwire://fragment/web")
+class WebFragment : HotwireWebFragment() {
+    private val mainActivity: MainActivity?
+        get() = activity as? MainActivity
 
     override fun onStart() {
         super.onStart()
-        (activity as? MainActivity)?.onDestinationStarted(this)
+        mainActivity?.onDestinationStarted(this)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        viewLifecycleOwner.lifecycle.removeObserver(bridgeDelegate)
+    override fun onVisitCompleted(location: String, completedOffline: Boolean) {
+        super.onVisitCompleted(location, completedOffline)
+        mainActivity?.onPageRendered(this)
     }
 
-    override fun onColdBootPageStarted(location: String) {
-        bridgeDelegate.onColdBootPageStarted()
-    }
-
-    override fun onColdBootPageCompleted(location: String) {
-        bridgeDelegate.onColdBootPageCompleted()
-    }
-
-    override fun onWebViewAttached(webView: TurboWebView) {
-        bridgeDelegate.onWebViewAttached(webView)
-    }
-
-    override fun onWebViewDetached(webView: TurboWebView) {
-        bridgeDelegate.onWebViewDetached()
-    }
-
-    override fun onVisitErrorReceived(location: String, errorCode: Int) {
-        when (errorCode) {
-            401 -> navigate(SIGN_IN_URL, TurboVisitOptions(action = REPLACE))
-            else -> super.onVisitErrorReceived(location, errorCode)
+    override fun onVisitErrorReceived(location: String, error: VisitError) {
+        when (error) {
+            HttpError.ClientError.Unauthorized -> navigator.route(SIGN_IN_URL)
+            else -> super.onVisitErrorReceived(location, error)
         }
     }
 
-    override fun createErrorView(statusCode: Int): View {
-        return layoutInflater.inflate(R.layout.error_web, null)
+    override fun customRouteDecision(proposal: VisitProposal): Router.Decision? {
+        mainActivity?.showNotice(proposal.location)
+
+        return when (mainActivity?.selectTabFor(this, proposal.location)) {
+            true -> Router.Decision.CANCEL
+            else -> null
+        }
     }
 }

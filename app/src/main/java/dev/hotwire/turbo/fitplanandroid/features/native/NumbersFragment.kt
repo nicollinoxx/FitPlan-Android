@@ -8,11 +8,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Text
-import dev.hotwire.turbo.nav.TurboNavGraphDestination
+import dev.hotwire.navigation.destinations.HotwireDestinationDeepLink
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 
-@TurboNavGraphDestination(uri = "turbo://fragment/numbers")
+@HotwireDestinationDeepLink(uri = "hotwire://fragment/numbers")
 class NumbersFragment : NativeFragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return setContent(inflater, container) {
