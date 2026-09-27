@@ -5,17 +5,17 @@ import android.view.LayoutInflater
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import dev.hotwire.strada.BridgeComponent
-import dev.hotwire.strada.BridgeDelegate
-import dev.hotwire.strada.Message
-import dev.hotwire.turbo.fitplanandroid.base.NavDestination
+import dev.hotwire.core.bridge.BridgeComponent
+import dev.hotwire.core.bridge.BridgeDelegate
+import dev.hotwire.core.bridge.Message
+import dev.hotwire.navigation.destinations.HotwireDestination
 import dev.hotwire.turbo.fitplanandroid.databinding.MenuComponentBottomSheetBinding
 import kotlinx.serialization.Serializable
 
 class MenuComponent(
     name: String,
-    private val bridgeDelegate: BridgeDelegate<NavDestination>
-) : BridgeComponent<NavDestination>(name, bridgeDelegate) {
+    private val bridgeDelegate: BridgeDelegate<HotwireDestination>
+) : BridgeComponent<HotwireDestination>(name, bridgeDelegate) {
 
     private val fragment: Fragment
         get() = bridgeDelegate.destination.fragment

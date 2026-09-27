@@ -24,3 +24,4 @@ captures/
 
 # OS
 .DS_Store
+.kotlin

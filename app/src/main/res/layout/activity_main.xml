@@ -3,56 +3,55 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".main.MainActivity">
 
-    <!--
-      One Turbo session per tab, each with its own WebView and back stack. The
-      ViewFlipper displays a single child at a time while keeping the others
-      alive off screen, so switching tabs preserves each tab's history.
-    -->
-    <ViewFlipper
-        android:id="@+id/view_flipper"
-        android:layout_width="0dp"
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/sheets_navigator_host"
+        android:name="dev.hotwire.navigation.navigator.NavigatorHost"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:measureAllChildren="false"
+        app:defaultNavHost="false"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view">
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/sheets_nav_host"
-            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SheetsSessionNavHostFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/shares_navigator_host"
+        android:name="dev.hotwire.navigation.navigator.NavigatorHost"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:defaultNavHost="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/shares_nav_host"
-            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SharesSessionNavHostFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/dashboard_navigator_host"
+        android:name="dev.hotwire.navigation.navigator.NavigatorHost"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:defaultNavHost="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/dashboard_nav_host"
-            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.DashboardSessionNavHostFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/social_navigator_host"
+        android:name="dev.hotwire.navigation.navigator.NavigatorHost"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:defaultNavHost="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/social_nav_host"
-            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.SocialSessionNavHostFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/profile_nav_host"
-            android:name="dev.hotwire.turbo.fitplanandroid.main.tabs.ProfileSessionNavHostFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-
-    </ViewFlipper>
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/profile_navigator_host"
+        android:name="dev.hotwire.navigation.navigator.NavigatorHost"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:defaultNavHost="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation_view"
@@ -63,7 +62,6 @@
         app:itemTextColor="@color/bottom_nav_text_color"
         app:itemActiveIndicatorStyle="@style/Widget.FitPlan.BottomNavigation.ActiveIndicator"
         app:labelVisibilityMode="labeled"
-        app:menu="@menu/bottom_nav_menu"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

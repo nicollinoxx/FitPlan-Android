@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.hotwire.turbo.fitplanandroid"
-        minSdk = 24
+        minSdk = 28
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -32,7 +32,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+    packaging {
+        resources.excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+    }
     buildFeatures {
+        buildConfig = true
         viewBinding = true
         compose = true
     }
@@ -59,10 +63,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("androidx.activity:activity-compose:1.10.1")
 
-    // Turbo Android
-    implementation("dev.hotwire:turbo:7.0.0")
-
-    // Strada
-    implementation("dev.hotwire:strada:1.0.0-beta2")
+    // Hotwire Native
+    implementation("dev.hotwire:core:1.3.1")
+    implementation("dev.hotwire:navigation-fragments:1.3.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 }

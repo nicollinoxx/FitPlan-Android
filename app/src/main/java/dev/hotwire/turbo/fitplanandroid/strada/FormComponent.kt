@@ -6,25 +6,24 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import dev.hotwire.strada.BridgeComponent
-import dev.hotwire.strada.BridgeDelegate
-import dev.hotwire.strada.Message
-import dev.hotwire.turbo.fitplanandroid.R
-import dev.hotwire.turbo.fitplanandroid.base.NavDestination
+import dev.hotwire.core.bridge.BridgeComponent
+import dev.hotwire.core.bridge.BridgeDelegate
+import dev.hotwire.core.bridge.Message
+import dev.hotwire.navigation.destinations.HotwireDestination
 import dev.hotwire.turbo.fitplanandroid.databinding.FormComponentSubmitBinding
 import kotlinx.serialization.Serializable
 
 class FormComponent(
     name: String,
-    private val bridgeDelegate: BridgeDelegate<NavDestination>
-) : BridgeComponent<NavDestination>(name, bridgeDelegate) {
+    private val bridgeDelegate: BridgeDelegate<HotwireDestination>
+) : BridgeComponent<HotwireDestination>(name, bridgeDelegate) {
 
     private val submitButtonItemId = 10
     private var submitMenuItem: MenuItem? = null
     private val fragment: Fragment
         get() = bridgeDelegate.destination.fragment
     private val toolbar: Toolbar?
-        get() = fragment.view?.findViewById(R.id.toolbar)
+        get() = bridgeDelegate.destination.toolbarForNavigation()
 
     override fun onReceive(message: Message) {
         when (message.event) {

@@ -6,12 +6,11 @@ import android.view.ViewGroup
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import dev.hotwire.turbo.fragments.TurboFragment
+import dev.hotwire.navigation.fragments.HotwireFragment
 import dev.hotwire.turbo.fitplanandroid.R
-import dev.hotwire.turbo.fitplanandroid.base.NavDestination
 import dev.hotwire.turbo.fitplanandroid.main.MainActivity
 
-abstract class NativeFragment : TurboFragment(), NavDestination {
+abstract class NativeFragment : HotwireFragment() {
     override fun onStart() {
         super.onStart()
         (activity as? MainActivity)?.onDestinationStarted(this)
