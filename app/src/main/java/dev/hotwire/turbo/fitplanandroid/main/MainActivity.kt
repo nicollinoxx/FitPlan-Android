@@ -23,6 +23,7 @@ import dev.hotwire.navigation.util.applyDefaultImeWindowInsets
 import dev.hotwire.turbo.fitplanandroid.R
 import dev.hotwire.turbo.fitplanandroid.util.BASE_URL
 import dev.hotwire.turbo.fitplanandroid.util.DASHBOARD_URL
+import dev.hotwire.turbo.fitplanandroid.util.LOCALE_COOKIE
 import dev.hotwire.turbo.fitplanandroid.util.PROFILE_URL
 import dev.hotwire.turbo.fitplanandroid.util.SESSION_COOKIE
 import dev.hotwire.turbo.fitplanandroid.util.SHARES_URL
@@ -48,7 +49,7 @@ class MainActivity : HotwireActivity() {
     // What each tab last rendered, keyed by tab position.
     private val renderedPages = mutableMapOf<Int, RenderedPage>()
 
-    private data class RenderedPage(val sessionToken: String?, val isAuthScreen: Boolean)
+    private data class RenderedPage(val sessionToken: String?, val locale: String?, val isAuthScreen: Boolean)
 
     // Tabs sitting on a screen that hides the bottom navigation.
     private val tabsHidingNavigation = mutableSetOf<Int>()
@@ -89,14 +90,14 @@ class MainActivity : HotwireActivity() {
     }
 
     /**
-     * Records what a tab rendered, so signing in or out resets the other tabs the
-     * next time they are selected.
+     * Records what a tab rendered, so signing in or out, or changing the
+     * language, resets the other tabs the next time they are selected.
      */
     fun onPageRendered(destination: HotwireDestination) {
         val position = positionOf(destination)
         if (position == -1 || destination.isModal) return
 
-        renderedPages[position] = RenderedPage(sessionToken(), destination.isAuthScreen)
+        renderedPages[position] = RenderedPage(cookie(SESSION_COOKIE), cookie(LOCALE_COOKIE), destination.isAuthScreen)
     }
 
     /**
@@ -127,7 +128,7 @@ class MainActivity : HotwireActivity() {
         get() = bottomNavigationView.selectedItemId
 
     private fun onTabSelected(position: Int) {
-        resetIfSessionChanged(position)
+        resetIfOutOfDate(position)
         applyBottomNavigationVisibility(position)
     }
 
@@ -136,19 +137,22 @@ class MainActivity : HotwireActivity() {
     }
 
     /**
-     * A tab is out of date when the session changed since it rendered, and also
-     * when it is left on an authentication screen while a session exists.
+     * A tab is out of date when the session or the language changed since it
+     * rendered, and also when it is left on an authentication screen while a
+     * session exists.
      *
-     * The second case is not redundant. Signing in from a tab that was sitting on
+     * The last case is not redundant. Signing in from a tab that was sitting on
      * the welcome screen makes that tab reload the very same screen once the modal
      * closes, which records the new session against a signed-out page. Comparing
      * tokens alone then finds nothing wrong and the tab keeps the stale screen for
      * good.
      */
-    private fun resetIfSessionChanged(position: Int) {
+    private fun resetIfOutOfDate(position: Int) {
         val rendered = renderedPages[position] ?: return
-        val token = sessionToken()
-        val outOfDate = rendered.sessionToken != token || (rendered.isAuthScreen && token != null)
+        val token = cookie(SESSION_COOKIE)
+        val outOfDate = rendered.sessionToken != token ||
+            rendered.locale != cookie(LOCALE_COOKIE) ||
+            (rendered.isAuthScreen && token != null)
         if (!outOfDate) return
 
         navigatorHost(tabs[position]).navigator.reset()
@@ -175,11 +179,11 @@ class MainActivity : HotwireActivity() {
         return supportFragmentManager.findFragmentById(tab.configuration.navigatorHostId) as NavigatorHost
     }
 
-    private fun sessionToken(): String? {
+    private fun cookie(name: String): String? {
         return CookieManager.getInstance().getCookie(BASE_URL)
             ?.split(";")
             ?.map { it.trim() }
-            ?.firstOrNull { it.startsWith("$SESSION_COOKIE=") }
+            ?.firstOrNull { it.startsWith("$name=") }
     }
 
     private fun tab(
