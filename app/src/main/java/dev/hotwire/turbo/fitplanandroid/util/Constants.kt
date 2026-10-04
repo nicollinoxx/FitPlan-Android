@@ -9,6 +9,9 @@ const val SIGN_IN_URL = "$BASE_URL/sign_in"
 // Cookie the Rails app stores the signed-in session under (see SessionsController).
 const val SESSION_COOKIE = "session_token"
 
+// Cookie the Rails app reports the language it is rendering in (see ApplicationController).
+const val LOCALE_COOKIE = "locale"
+
 // Start location of each bottom navigation tab. Every path below is a real
 // top-level route of the FitPlan Rails app (see its config/routes.rb).
 const val SHEETS_URL    = "$BASE_URL/sheets"
