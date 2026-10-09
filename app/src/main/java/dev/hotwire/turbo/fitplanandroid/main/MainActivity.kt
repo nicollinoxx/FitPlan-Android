@@ -62,7 +62,7 @@ class MainActivity : HotwireActivity() {
         setContentView(R.layout.activity_main)
         findViewById<View>(R.id.root).applyDefaultImeWindowInsets()
 
-        bottomNavigation = HotwireBottomNavigationController(this, bottomNavigationView, lazyLoadTabs = true)
+        bottomNavigation = HotwireBottomNavigationController(this, bottomNavigationView, lazyLoadTabs = false)
         bottomNavigation.load(tabs, savedInstanceState?.getInt(SELECTED_TAB_KEY) ?: 0)
         bottomNavigation.setOnTabSelectedListener { position, _ -> onTabSelected(position) }
     }
