@@ -8,6 +8,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.isVisible
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
@@ -98,6 +100,7 @@ class MainActivity : HotwireActivity() {
         if (position == -1 || destination.isModal) return
 
         renderedPages[position] = RenderedPage(cookie(SESSION_COOKIE), cookie(LOCALE_COOKIE), destination.isAuthScreen)
+        followAppLanguage()
     }
 
     /**
@@ -156,6 +159,20 @@ class MainActivity : HotwireActivity() {
         if (!outOfDate) return
 
         navigatorHost(tabs[position]).navigator.reset()
+    }
+
+    /**
+     * The app's own texts -- the tab titles, dialogs and the error screen -- come
+     * from its resources, so they follow the device's language even after another
+     * one is picked on the web. This hands them the language the pages render in.
+     * Android recreates the activity to apply it and remembers it for the next
+     * launch. Without the cookie nothing was picked, so the device decides.
+     */
+    private fun followAppLanguage() {
+        val language = cookie(LOCALE_COOKIE)?.substringAfter("=") ?: return
+        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() == language) return
+
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(language))
     }
 
     private val HotwireDestination.isAuthScreen: Boolean
