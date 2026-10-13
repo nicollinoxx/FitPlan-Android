@@ -1,9 +1,11 @@
 package dev.hotwire.turbo.fitplanandroid.util
 
-private const val DEVELOPMENT_URL = "http://10.0.2.2:3000"
-private const val PRODUCTION_URL  = "https://fitplan.vip"
+import dev.hotwire.turbo.fitplanandroid.BuildConfig
 
-const val BASE_URL    = DEVELOPMENT_URL
+// Set per build type in app/build.gradle.kts, so a release can never ship
+// pointing at a development machine: debug builds talk to the emulator's view of
+// localhost, release builds to the real site.
+const val BASE_URL    = BuildConfig.BASE_URL
 const val SIGN_IN_URL = "$BASE_URL/sign_in"
 
 // Cookie the Rails app stores the signed-in session under (see SessionsController).

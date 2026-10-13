@@ -7,4 +7,13 @@
     <string name="tab_dashboard">Dashboard</string>
     <string name="tab_social">Social</string>
     <string name="tab_profile">Profile</string>
+
+    <!-- Hotwire Native ships these, and values-pt overrides them. Repeating the
+         library's own English here keeps the override complete: a translation
+         with no entry in the default locale is an error on a release build. -->
+    <string name="hotwire_error_message">Error loading page</string>
+    <string name="hotwire_file_chooser_select">Select file</string>
+    <string name="hotwire_file_chooser_select_multiple">Select file(s)</string>
+    <string name="hotwire_dialog_ok">OK</string>
+    <string name="hotwire_dialog_cancel">Cancel</string>
 </resources>

@@ -30,22 +30,36 @@ Built as part of an undergraduate final project (TCC).
 ## Setup
 
 1. Start the Rails app from the [FitPlan](https://github.com/nicollinoxx/FitPlan) repository on port `3000`.
-2. Point the app at that instance in `app/src/main/java/dev/hotwire/turbo/fitplanandroid/util/Constants.kt`:
+2. The server the app talks to follows the build type, in `app/build.gradle.kts`:
 
    ```kotlin
-   private const val DEVELOPMENT_URL = "http://10.0.2.2:3000"  // localhost as seen from the emulator
-   private const val PRODUCTION_URL  = "https://fitplan.vip"
-
-   const val BASE_URL = DEVELOPMENT_URL
+   debug   { buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000\"") }
+   release { buildConfigField("String", "BASE_URL", "\"https://fitplan.vip\"") }
    ```
 
    `10.0.2.2` is the host machine's loopback address from inside the Android emulator. On a physical
-   device, use the machine's IP on the local network instead.
+   device, put the machine's IP on the local network in the debug line instead. Only debug builds
+   allow cleartext HTTP (`app/src/debug/AndroidManifest.xml`), so a release always speaks HTTPS.
 3. Build and install:
 
    ```sh
    ./gradlew installDebug
    ```
+
+### Release build
+
+```sh
+./gradlew assembleRelease     # app/build/outputs/apk/release/app-release.apk
+```
+
+It points at `https://fitplan.vip`, runs with debugging off and goes through R8, which takes it from
+roughly 36 MB to under 8 MB. The APK is signed with the SDK's debug certificate, since it is handed
+out as a file rather than through the Play Store; that certificate decides only which APK may replace
+which on a device, not whether the build is a debug one.
+
+R8 needs the keep rules in `app/proguard-rules.pro`: Hotwire builds its navigation graph from each
+destination's class hierarchy, so neither its own classes nor this app's fragments may be merged or
+renamed.
 
 ## How the integration works
 
