@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shown while a visit is in flight. The server is far enough away that most
+     navigations cross a visible gap, so this stands in for the page: the app's
+     own surface color, nothing but a spinner, and no hint that anything failed. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface">
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:indeterminate="true"
+        app:indicatorColor="?attr/colorPrimary"
+        app:indicatorSize="44dp"
+        app:trackThickness="4dp" />
+</FrameLayout>
