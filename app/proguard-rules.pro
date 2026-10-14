@@ -19,3 +19,20 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Compile-time annotations that reach Android through transitive dependencies.
+# They point at javax.lang.model, which is part of the JDK and absent from the
+# platform, so R8 stops on the dangling reference. Nothing calls them at runtime.
+-dontwarn javax.lang.model.element.**
+-dontwarn com.google.errorprone.annotations.**
+
+# Hotwire builds its navigation graph by asking each destination class what it
+# descends from, so the fragment and navigation hierarchies have to survive
+# intact. R8 merges classes it believes are unused as separate types, which
+# rewrites those superclass links and leaves the graph unbuildable.
+-keep class androidx.fragment.app.** { *; }
+-keep class androidx.navigation.** { *; }
+
+# The app's own destinations go through the same graph builder, so they need the
+# same treatment. The savings come from dropping unused library code, not from
+# renaming the handful of classes written here.
+-keep class dev.hotwire.turbo.fitplanandroid.** { *; }

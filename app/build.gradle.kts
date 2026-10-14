@@ -20,12 +20,25 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:3000\"")
+        }
+
         release {
-            isMinifyEnabled = false
+            buildConfigField("String", "BASE_URL", "\"https://fitplan.vip\"")
+
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+
+            // The app is handed out as a file, not through the Play Store, so it
+            // carries the SDK's debug certificate. That only decides which APK may
+            // replace which on a device; the build itself is a release, with
+            // debugging off and R8 on.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
