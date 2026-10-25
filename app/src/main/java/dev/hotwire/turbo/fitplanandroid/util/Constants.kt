@@ -3,8 +3,10 @@ package dev.hotwire.turbo.fitplanandroid.util
 import dev.hotwire.turbo.fitplanandroid.BuildConfig
 
 // Set per build type in app/build.gradle.kts, so a release can never ship
-// pointing at a development machine: debug builds talk to the emulator's view of
-// localhost, release builds to the real site.
+// pointing at a development machine: debug builds talk to localhost, forwarded to
+// the development machine with `adb reverse tcp:3000 tcp:3000`, release builds to
+// the real site. Localhost rather than the emulator's 10.0.2.2, because OpenRouter
+// only accepts a plain HTTP callback on localhost.
 const val BASE_URL    = BuildConfig.BASE_URL
 const val SIGN_IN_URL = "$BASE_URL/sign_in"
 
