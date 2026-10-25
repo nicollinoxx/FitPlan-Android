@@ -9,8 +9,13 @@ import dev.hotwire.core.turbo.config.PathConfiguration
 import dev.hotwire.navigation.config.defaultFragmentDestination
 import dev.hotwire.navigation.config.registerBridgeComponents
 import dev.hotwire.navigation.config.registerFragmentDestinations
+import dev.hotwire.navigation.config.registerRouteDecisionHandlers
+import dev.hotwire.navigation.routing.AppNavigationRouteDecisionHandler
+import dev.hotwire.navigation.routing.BrowserTabRouteDecisionHandler
+import dev.hotwire.navigation.routing.SystemNavigationRouteDecisionHandler
 import dev.hotwire.turbo.fitplanandroid.features.native.NumbersFragment
 import dev.hotwire.turbo.fitplanandroid.features.web.WebFragment
+import dev.hotwire.turbo.fitplanandroid.routing.SocialSignInRouteDecisionHandler
 import dev.hotwire.turbo.fitplanandroid.strada.FlashMessageComponent
 import dev.hotwire.turbo.fitplanandroid.strada.FormComponent
 import dev.hotwire.turbo.fitplanandroid.strada.MenuComponent
@@ -22,6 +27,14 @@ class FitPlanApplication : Application() {
 
         Hotwire.defaultFragmentDestination = WebFragment::class
         Hotwire.registerFragmentDestinations(WebFragment::class, NumbersFragment::class)
+
+        // Registering replaces the defaults, so they follow the app's own handler.
+        Hotwire.registerRouteDecisionHandlers(
+            SocialSignInRouteDecisionHandler(),
+            AppNavigationRouteDecisionHandler(),
+            BrowserTabRouteDecisionHandler(),
+            SystemNavigationRouteDecisionHandler()
+        )
 
         Hotwire.registerBridgeComponents(
             BridgeComponentFactory("form", ::FormComponent),
